@@ -1,14 +1,14 @@
-pkg=c("plyr","ggplot2","reshape2","stringr","scales","grid","gtools","shinyAce","gridExtra","mgcv","caTools","dplyr")
+pkg=c("plyr","zoo","ggplot2","reshape2","stringr","scales","grid","shinyAce","gridExtra","dplyr")
 x=sapply(pkg,require,character.only=T,warn.conflicts = F, quietly = T)
 rm(pkg,x)
 
-setwd("H:/u243/IMF CIMDO/")
+setwd("C:/Users/yoni/Documents/GitHub/CIMDO/")
 
 read.files=F
 
 if(read.files){
-load("RCIMDO/cimdo_description.rdata")
-load("RCIMDO/security_names.rdata")
+load("www/cimdo_description.rdata")
+load("www/security_names.rdata")
 
 yq=function (x,prefix="%Y",combine="Q"){
   paste(ifelse(is.null(prefix),"",format(x,prefix)),floor(as.numeric(format(x,"%m"))/3-1e-3)+1,sep=combine)
@@ -38,7 +38,7 @@ remove_geom <- function(p, geom_old) {
 
 idx=c(1:10)
 
-cimdo.files=data.frame(file=list.files("FSM/ALL",pattern = "csv",full.names = T),
+cimdo.files=data.frame(file=list.files("FSM",pattern = "csv",full.names = T),
                        desc=c("At least 1 defaults|Security Default",
                               "Exactly 1 defaults|Security Default",
                               "Group Default",
@@ -118,16 +118,18 @@ DiDe=DiDe%>%mutate(
 
 rm(cimdo.manual,cimdo.manual.names,idx)
 
-cimdo.shiny=cimdo.out[,c(4,12:14,8,9,3,1,5)]
+cimdo.shiny=cimdo.out[,c("Date","Y","Q","m","variable","desc","TYPE_ENG","NAME_ENG","value")]
 cimdo.shiny=cimdo.shiny%>%mutate_each(funs(as.character),contains("ENG"))
-cimdo.shiny[cimdo.shiny$desc%in%c("JPOD","BSI","Group Default","user definded groups"),c(5,6)]="ALL"
+cimdo.shiny[cimdo.shiny$desc%in%c("JPOD","BSI","Group Default","user definded groups"),c("TYPE_ENG","NAME_ENG")]="ALL"
+
 cimdo.shiny$variable[cimdo.shiny$NAME_ENG!="ALL"]=cimdo.shiny$NAME_ENG[cimdo.shiny$NAME_ENG!="ALL"]
+
 cimdo.shiny$NAME_ENG=NULL
-names(cimdo.shiny)[5]="TYPE"
+names(cimdo.shiny)[which(names(cimdo.shiny)=="TYPE_ENG")]="TYPE"
 names(cimdo.shiny)=toupper(names(cimdo.shiny))
 
 
-DiDe.shiny=DiDe[,c(5,11:13,2,10,8,7,9,6)]
+DiDe.shiny=DiDe[,c("Date","Y","Q","m","desc","in.default.type","to.default.type","in.default.name","to.default.name","value")]
 names(DiDe.shiny)=toupper(names(DiDe.shiny))
 DiDe.shiny=DiDe.shiny%>%mutate_each(funs(as.numeric),Y,M,VALUE)%>%mutate_each(funs(factor),-c(Y,M,DATE,VALUE))
 DiDe.shiny=rbind(DiDe.shiny%>%mutate(TYPE=paste0("IN.DEFAULT:",IN.DEFAULT.TYPE),VARIABLE=paste0("IN.DEFAULT:",IN.DEFAULT.NAME))%>%select(DATE:DESC,TYPE,VARIABLE,VALUE),
@@ -137,9 +139,14 @@ to.shiny=rbind(cimdo.shiny,DiDe.shiny)
 
 to.shiny=to.shiny%>%mutate_each(funs(as.numeric),Y,M)%>%mutate_each(funs(factor),-c(Y,M,DATE,VALUE))
 
-save.image(file="Shiny/cimdoshiny.rdata")
+to.shiny$DESC=factor(to.shiny$DESC,levels=c("JPOD","BSI","Group Default","user definded groups",
+                        "At least 1 defaults|Security Default","Exactly 1 defaults|Security Default",
+                        "Spillover Coefficient","system|security","security|system",
+                        "Emperical PoD","row default|col default","row and col default"))
+
+save.image(file="www/cimdoshiny.rdata")
 
 
 }else{
-  load("Shiny/cimdoshiny.rdata")
+  load("www/cimdoshiny.rdata")
 }
