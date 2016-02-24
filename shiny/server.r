@@ -1,5 +1,16 @@
 shinyServer(function(input, output, session) {
 
+#   to.shiny<-reactive({
+#     data.type<-input$data.type
+#     if(is.null(data.type)) return(NULL)
+#     case=data.frame(CASE=gsub("[^0-9]","",list.dirs(paste0("FSM/",data.type)))[-1])
+#     to.shiny=ddply(case,.(CASE),.fun = function(x) read.cimdo(paste("FSM",data.type,x$CASE,sep="/")))
+#     to.shiny=to.shiny[,names(to.shiny)[c(2:8,1)]]
+#     return(to.shiny)
+#   })
+#   
+#   output$to.shiny=to.shiny
+  
 #   output$DESC<-renderUI({
 #     DESC=levels(to.shiny[[input$df]]$DESC)
 #     selectInput(inputId = "DESC", label = "Measure",choices = DESC,selected=DESC[1])
@@ -44,8 +55,8 @@ shinyServer(function(input, output, session) {
       filltxt=ifelse(input$factor,paste0("factor(",input$var_fill,")"),input$var_fill)
       
       if(input$ptype%in%c("line","point","smoothed")){
-        p = p + aes_string(colour=filltxt)
-        if(input$factor) p=p+scale_colour_discrete(name=input$var_fill)
+        p = p + aes_string(color=filltxt)
+        if(input$factor) p=p+scale_color_discrete(name=input$var_fill)
       }
     else if(input$ptype%in%c("boxplot","density")){
         p = p + aes_string(fill=filltxt)
@@ -65,32 +76,23 @@ shinyServer(function(input, output, session) {
     }
   
     p=p+xlab(temp1)+ylab(temp2)
-    
-#     if(input$ptype=="smoothed" & input$output_df=="Shapley Value for VaR0.99"){
-#       xx1=x%>%filter(x$TYPE=="banks")
-#       xx2=x%>%filter(x$TYPE=="insurance")
-#       p1=ggplot(xx1)+geom_smooth(aes_string(x=input$var_x,y=input$var_y,color=input$var_fill),fill=NA)+geom_hline(yintercept=1)+theme_bw()
-#       p2=ggplot(xx2)+geom_smooth(aes_string(x=input$var_x,y=input$var_y,color=input$var_fill),fill=NA)+geom_hline(yintercept=1)+theme_bw()
-#       p=grid.arrange(p1,p2,ncol=2)
-#     }
-
-        return(p)     
+    return(p)     
   })
 
   output$table=renderDataTable(to.shiny)   
   
-  output$downloadPlot=downloadHandler(filename="CIMDOPLOT.png",
-                                      content=function(file){
-                                        p=data.r()
-                                        device=function(...,width,height) grDevices::png(...,width,height,res=300,units="in")
-                                        ggsave(file,plot=eval(parse(text=input$code)),device = device)
-                                      })
+#   output$downloadPlot=downloadHandler(filename="CIMDOPLOT.png",
+#                                       content=function(file){
+#                                         p=data.r()
+#                                         device=function(...,width,height) grDevices::png(...,width,height,res=300,units="in")
+#                                         ggsave(file,plot=eval(parse(text=input$code)),device = device)
+#                                       })
       
-  output$CimdoPlot=renderPlot({
+  output$CimdoPlot=renderPlotly(expr = {
     p=data.r()
     input$send
     isolate({
-      print(eval(parse(text = input$code)))
+      eval(parse(text = input$code))
     })
   }) 
   

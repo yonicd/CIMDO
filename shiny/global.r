@@ -1,4 +1,4 @@
-pkg=c("plyr","zoo","ggplot2","reshape2","stringr","scales","grid","shinyAce","gridExtra","dplyr")
+pkg=c("plyr","zoo","ggplot2","reshape2","stringr","scales","grid","shinyAce","gridExtra","plotly","dplyr")
 x=sapply(pkg,require,character.only=T,warn.conflicts = F, quietly = T)
 rm(pkg,x)
 
@@ -108,7 +108,7 @@ return(to.shiny)
 
 if(read.files){
   data.type="Patient"
-  case=data.frame(CASE=gsub("[^0-9]","",list.dirs(paste0("FSM/",data.type)))[-1])
+  case=data.frame(CASE=unlist(lapply(strsplit(list.dirs(paste0("FSM/",data.type))[-1],"/"),'[',3)))
   to.shiny=ddply(case,.(CASE),.fun = function(x) read.cimdo(paste("FSM",data.type,x$CASE,sep="/")))
   to.shiny=to.shiny[,names(to.shiny)[c(2:8,1)]]
 }else{
