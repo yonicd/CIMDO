@@ -14,6 +14,7 @@ shinyServer(function(input, output, session) {
       data.r=reactive({
 	     x=to.shiny
       
+	    if(length(input$CASE)>0) x=x%>%filter(CASE%in%input$CASE)
       if(length(input$Y)>0) x=x%>%filter(Y%in%seq(input$Y[1],input$Y[2]))
       if(length(input$Q)>0) x=x%>%filter(Q%in%input$Q)
       if(length(input$M)>0) x=x%>%filter(M%in%seq(input$M[1],input$M[2]))
@@ -24,11 +25,9 @@ shinyServer(function(input, output, session) {
       temp1=ifelse(input$var_x==as.character(leg.var[1,1]),as.character(leg.var[1,2]),ifelse(input$var_x==as.character(leg.var[2,1]),as.character(leg.var[2,2]),input$var_x))
       temp2=ifelse(input$var_y==as.character(leg.var[1,1]),as.character(leg.var[1,2]),ifelse(input$var_y==as.character(leg.var[2,1]),as.character(leg.var[2,2]),input$var_y))
       
-      if(input$DESC%in%c("row and col default","row default|col default")){
-        x2=x%>%filter(grepl("TO",VARIABLE))%>%rename(TO.DEFAULT=VARIABLE)%>%mutate_each(funs(gsub("TO.DEFAULT:","",.)),TO.DEFAULT,TYPE)
-        x3=x%>%filter(grepl("IN",VARIABLE))%>%mutate(VARIABLE=gsub("IN.DEFAULT:","",VARIABLE))%>%select(-TYPE)
-        x=x2%>%left_join(x3,by=names(x2)[-c(5,7)])
-        rm(x2,x3)
+      if(any(input$DESC%in%c("row and col default","row default|col default"))){
+        x$TO.DEFAULT=unlist(lapply(strsplit(as.character(x$VARIABLE),"[|]"),'[',1))
+        x$IN.DEFAULT=unlist(lapply(strsplit(as.character(x$VARIABLE),"[|]"),'[',2))
       }
           
     p=x%>%ggplot()+theme_bw()+theme(axis.text.x=element_text(angle=90*as.numeric(input$rotate),hjust=1))
@@ -65,7 +64,7 @@ shinyServer(function(input, output, session) {
       
     }
   
-    p=p+xlab(temp1)+ylab(temp2)+ggtitle(input$DESC)
+    p=p+xlab(temp1)+ylab(temp2)
     
 #     if(input$ptype=="smoothed" & input$output_df=="Shapley Value for VaR0.99"){
 #       xx1=x%>%filter(x$TYPE=="banks")
@@ -75,7 +74,7 @@ shinyServer(function(input, output, session) {
 #       p=grid.arrange(p1,p2,ncol=2)
 #     }
 
-    return(p)     
+        return(p)     
   })
 
   output$table=renderDataTable(to.shiny)   
