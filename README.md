@@ -9,6 +9,9 @@ The approach defines the banking system as a portfolio of banks and infers the s
 
 This methodology was dervied by [Segoviano and Goodhart 2009](https://www.imf.org/external/pubs/ft/wp/2009/wp0904.pdf).
 
+## Application in major financial institutions
+The CIMDO framework and other market-based indicators are considered by many authorities an important, though not exclusive, tool to support the analysis of financial stability. The value added of this framework has been widely recognized by its use in various IMF global financial Stability Reviews (GFSRs), important Financial Sector assessment Programs (FSAPs), including the US in 2010, 2015, UK in 2011 and currently in 2016, Denmark, Egypt, etc., and has been adopted by various Central Banks including the Riksbank, ECB, Banque de France, Mexico CNBV, Reserve Bank of India etc.
+
 ## Dashboard
 The dashboard reads all outputs by the Financial Stability Measures system and creates an interactive experience to study the model results. The graphs can be in static mode (ggplot) or interactive mode (plotly) which is still in beta. 
 
@@ -34,5 +37,8 @@ The measures currently available to view are:
 |          Pr(row and col default)          |
 
 
+## To Do List
 
+  - Add Panels for other outputs of the CIMDO system (Portfolio & Shapley Values)
+  - Introduce surveillance schemes for detecting the path to non-linear tail dependence
 
