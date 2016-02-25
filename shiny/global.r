@@ -121,7 +121,7 @@ leg.tbl=data.frame(short=c("PoDTBSI","PoDTJointProb","atLeastOneInsurGivenAllBan
                           "Prob(all insurance companies going default | all\r\n banks default)",
                           "Prob(all banks  going default | all\r\n insurance companies default)"))
 
-data.type="Patient"
-case=data.frame(CASE=unlist(lapply(strsplit(list.dirs(paste0("FSM/",data.type))[-1],"/"),'[',3)))
-to.shiny=ddply(case,.(CASE),.fun = function(x) read.cimdo(paste("FSM",data.type,x$CASE,sep="/")))
-to.shiny=to.shiny[,names(to.shiny)[c(2:8,1)]]
+# data.type="Patient"
+# case=data.frame(CASE=unlist(lapply(strsplit(list.dirs(paste0("FSM/",data.type))[-1],"/"),'[',3)))
+# to.shiny=ddply(case,.(CASE),.fun = function(x) read.cimdo(paste("FSM",data.type,x$CASE,sep="/")))
+# to.shiny=to.shiny[,names(to.shiny)[c(2:8,1)]]

@@ -1,29 +1,70 @@
 shinyServer(function(input, output, session) {
 
-#   to.shiny<-reactive({
-#     data.type<-input$data.type
-#     if(is.null(data.type)) return(NULL)
-#     case=data.frame(CASE=gsub("[^0-9]","",list.dirs(paste0("FSM/",data.type)))[-1])
-#     to.shiny=ddply(case,.(CASE),.fun = function(x) read.cimdo(paste("FSM",data.type,x$CASE,sep="/")))
-#     to.shiny=to.shiny[,names(to.shiny)[c(2:8,1)]]
-#     return(to.shiny)
-#   })
-#   
-#   output$to.shiny=to.shiny
-  
-#   output$DESC<-renderUI({
-#     DESC=levels(to.shiny[[input$df]]$DESC)
-#     selectInput(inputId = "DESC", label = "Measure",choices = DESC,selected=DESC[1])
-#   })      
-  
-  output$VARIABLE<-renderUI({
-    VARIABLE=levels(factor(to.shiny$VARIABLE[to.shiny$DESC%in%input$DESC]))
-    if(any(grepl("IN",VARIABLE))) VARIABLE=gsub("TO.DEFAULT:|IN.DEFAULT:","",unique(as.character(to.shiny$VARIABLE)))
-    selectInput(inputId = "VARIABLE",label =  "Measure Filter",choices = VARIABLE,multiple = T)
+  to.shiny<-reactive({
+    data.type<-input$data.type
+    if(is.null(data.type)) return(NULL)
+    case=data.frame(CASE=unlist(lapply(strsplit(list.dirs(paste0("FSM/",data.type))[-1],"/"),'[',3)))
+    to.shiny=ddply(case,.(CASE),.fun = function(x) read.cimdo(paste("FSM",data.type,x$CASE,sep="/")))
+    to.shiny=to.shiny[,names(to.shiny)[c(2:8,1)]]
+    return(to.shiny)
+  })
+
+  output$Y<-renderUI({
+    df=to.shiny()
+    sliderInput("Y", label = "Timeline",min = min(df$Y),animate = F,max = max(df$Y),value = range(df$Y),step = 1)
   })
   
+  output$Q<-renderUI({
+    df=to.shiny()
+    checkboxGroupInput("Q", label = "Quarter",choices = levels(df$Q),selected = levels(df$Q),inline=T)
+  })
+  
+output$facet.row<-renderUI({
+  df=to.shiny()
+  selectInput('facet_row', 'Facet Row', c(None='.', names(df)[-1],"TO.DEFAULT","IN.DEFAULT"))
+})  
+
+output$facet.col<-renderUI({
+  df=to.shiny()
+  selectInput('facet_col', 'Facet Column', c(None='.', names(df)[-1],"TO.DEFAULT","IN.DEFAULT"))
+})
+
+output$CASE<-renderUI({
+  df=to.shiny()
+  selectInput(inputId = "CASE", label = "Data",choices = levels(df$CASE),selected=levels(df$CASE)[1],multiple = T)
+})
+
+output$DESC<-renderUI({
+  df=to.shiny()
+  selectInput(inputId = "DESC", label = "Measure",choices = levels(df$DESC),selected=levels(df$DESC)[1],multiple = T)
+})
+  
+output$VARIABLE<-renderUI({
+  df=to.shiny()
+  VARIABLE=levels(factor(df$VARIABLE[df$DESC%in%input$DESC]))
+  if(any(grepl("IN",VARIABLE))) VARIABLE=gsub("TO.DEFAULT:|IN.DEFAULT:","",unique(as.character(df$VARIABLE)))
+  selectInput(inputId = "VARIABLE",label =  "Measure Filter",choices = VARIABLE,multiple = T)
+})
+
+output$xvar<-renderUI({
+  df=to.shiny()
+  selectInput('var_x', 'X variable', c('None', names(df)[-7],"TO.DEFAULT","IN.DEFAULT"),selected = "DATE")
+})
+
+output$yvar<-renderUI({
+  df=to.shiny()
+  selectInput('var_y', 'Y variable', c('None', names(df)[-1],"TO.DEFAULT","IN.DEFAULT"),selected = "VALUE")
+})
+
+output$fill<-renderUI({
+  df=to.shiny()
+  selectInput('var_fill', 'Group', c('None', names(df)[-1],"TO.DEFAULT","IN.DEFAULT"),selected = "CASE")
+})
+
+
+  
       data.r=reactive({
-	     x=to.shiny
+	     x=to.shiny()
       
 	    if(length(input$CASE)>0) x=x%>%filter(CASE%in%input$CASE)
       if(length(input$Y)>0) x=x%>%filter(Y%in%seq(input$Y[1],input$Y[2]))

@@ -1,3 +1,4 @@
+to.shiny=uiOutput("to.shiny")
 
 shinyUI(pageWithSidebar(
   
@@ -7,16 +8,16 @@ shinyUI(pageWithSidebar(
   # Sidebar with controls to select the variable to plot against mpg
   # and to specify whether outliers should be included
   sidebarPanel(width=3,
-               #column(width=3,selectInput(inputId = "data.type", label = "Data Directory",choices = c("Patient","Finance"),selected='Patient')),               
-               sliderInput("Y", label = "Timeline",min = min(to.shiny$Y),animate = F,max = max(to.shiny$Y),value = range(to.shiny$Y),step = 1),
-               checkboxGroupInput("Q", label = "Quarter",choices = levels(to.shiny$Q),selected = levels(to.shiny$Q),inline=T),
+               selectInput(inputId = "data.type", label = "Data Directory",choices = c("Patient","Finance"),selected='Patient'),
+               uiOutput("Y"),
+               uiOutput("Q"),
                sliderInput("M","Month",min = 1,max=12,value=c(1,12)),
                checkboxInput("factor",label = "Group Factor",value = F),
                checkboxInput("rotate",label = "Rotate X label",value = T),
                radioButtons("facet_type",label = NULL,choices=split(c("wrap","grid"),c("Facet Wrap","Facet Grid")),selected = "wrap",inline=T),
                radioButtons("facet_scales","Facet Scales",choices=c("fixed","free_x","free_y","free"),selected = "free_x",inline=T),
-               selectInput('facet_row', 'Facet Row', c(None='.', names(to.shiny)[-1],"TO.DEFAULT","IN.DEFAULT")),
-               selectInput('facet_col', 'Facet Column', c(None='.', names(to.shiny)[-1],"TO.DEFAULT","IN.DEFAULT")),
+               uiOutput("facet.row"),
+               uiOutput("facet.col"),
                       actionButton("send","User Layer"),
                       aceEditor(outputId = "code",
                                 value = "p",
@@ -31,13 +32,13 @@ shinyUI(pageWithSidebar(
                  column(width=4,radioButtons(inputId="plotmode",label = "Plot Mode",choices=split(c("ggplot","plotly"),c("Static","Interactive (Beta)")),selected = "ggplot",inline = T)),
                  column(width=8,radioButtons("ptype", "Plot Type",choices = c("line","point","boxplot","density","stacked","smoothed"),selected = "line",inline=T))),
                fluidRow(
-                 column(width=3,selectInput(inputId = "CASE", label = "Data",choices = levels(to.shiny$CASE),selected=levels(to.shiny$CASE)[1],multiple = T)),
-                 column(width=3,selectInput(inputId = "DESC", label = "Measure",choices = levels(to.shiny$DESC),selected=levels(to.shiny$DESC)[1],multiple = T)),
+                 column(width=3,uiOutput("CASE")),
+                 column(width=3,uiOutput("DESC")),
                  column(width=3,uiOutput("VARIABLE"))),
                fluidRow(
-                 column(width=3,selectInput('var_x', 'X variable', c('None', names(to.shiny)[-7],"TO.DEFAULT","IN.DEFAULT"),selected = "DATE")),
-                 column(width=3,selectInput('var_y', 'Y variable', c('None', names(to.shiny)[-1],"TO.DEFAULT","IN.DEFAULT"),selected = "VALUE")),
-                 column(width=3,selectInput('var_fill', 'Group', c('None', names(to.shiny)[-1],"TO.DEFAULT","IN.DEFAULT"),selected = "CASE"))
+                 column(width=3,uiOutput("xvar")),
+                 column(width=3,uiOutput("yvar")),
+                 column(width=3,uiOutput("fill"))
                ),
                fluidRow(
                  conditionalPanel('input.plotmode=="ggplot"',
