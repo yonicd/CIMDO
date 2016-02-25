@@ -19,7 +19,7 @@ shinyServer(function(input, output, session) {
   output$VARIABLE<-renderUI({
     VARIABLE=levels(factor(to.shiny$VARIABLE[to.shiny$DESC%in%input$DESC]))
     if(any(grepl("IN",VARIABLE))) VARIABLE=gsub("TO.DEFAULT:|IN.DEFAULT:","",unique(as.character(to.shiny$VARIABLE)))
-    selectInput(inputId = "VARIABLE",label =  "Institutions Filter",choices = VARIABLE,multiple = T)
+    selectInput(inputId = "VARIABLE",label =  "Measure Filter",choices = VARIABLE,multiple = T)
   })
   
       data.r=reactive({
@@ -81,19 +81,27 @@ shinyServer(function(input, output, session) {
 
   output$table=renderDataTable(to.shiny)   
   
-#   output$downloadPlot=downloadHandler(filename="CIMDOPLOT.png",
-#                                       content=function(file){
-#                                         p=data.r()
-#                                         device=function(...,width,height) grDevices::png(...,width,height,res=300,units="in")
-#                                         ggsave(file,plot=eval(parse(text=input$code)),device = device)
-#                                       })
-      
-  output$CimdoPlot=renderPlotly(expr = {
+  output$CimdoPlot=renderPlot(expr = {
     p=data.r()
     input$send
     isolate({
       eval(parse(text = input$code))
     })
-  }) 
+  })
+  
+    output$downloadPlot=downloadHandler(filename="CIMDOPLOT.png",
+                                        content=function(file){
+                                          p=data.r()
+                                          device=function(...,width,height) grDevices::png(...,width,height,res=300,units="in")
+                                          ggsave(file,plot=eval(parse(text=input$code)),device = device)
+                                        })
+  
+  output$CimdoPlotly=renderPlotly(expr = {
+      p=data.r()
+      input$send
+      isolate({
+        eval(parse(text = input$code))
+      })
+    })
   
 })

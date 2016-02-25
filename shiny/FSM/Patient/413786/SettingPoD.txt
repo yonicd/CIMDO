@@ -1,0 +1,13 @@
+1. fileNameDefaultProb = PoD.xlsx
+2. worksheetName = Default Prob
+3. fileNameStockPrice = NAN 
+4. cutoffDateStart = 21/03/2016
+5. cutoffDateEnd = 20/06/2016
+6. computationStartDate = 21/03/2016
+7. computationEndDate = 20/06/2016
+8. idxProb = 1
+9. idxGiven = 3
+10. quadGroup1 = 2,3
+11. datesSCperiod = NAN
+12. ContributionToSC = NAN
+13. nu_if_stock_prices_are_not_available = 3

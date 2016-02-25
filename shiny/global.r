@@ -1,20 +1,20 @@
-pkg=c("plyr","zoo","ggplot2","reshape2","stringr","scales","grid","shinyAce","gridExtra","plotly","dplyr")
+pkg=c("plyr","zoo","ggplot2","reshape2","stringr","scales","grid","shinyAce","gridExtra","plotly","shiny","dplyr")
 x=sapply(pkg,require,character.only=T,warn.conflicts = F, quietly = T)
 rm(pkg,x)
 
-setwd("C:/Users/yoni/Documents/GitHub/CIMDO/")
 read.files=T
 
-remove_geom <- function(p, geom_old) {
-  layers <- lapply(p$layers, function(x) if(x$geom$objname == geom_old) NULL else x)
+remove_geom <- function(p, geom) {
+  layers <- lapply(p$layers, function(x) if(any(grepl(paste0('(?i)',geom),class(x$geom)))) NULL else x)
   layers <- layers[!sapply(layers, is.null)]
+  
   p$layers <- layers
   p
 }
 
 read.cimdo=function(file.path){
   
-  load("www/cimdokey.rdata")
+  load("cimdokey.rdata")
   
   yq=function (x,prefix="%Y",combine="Q"){
     paste(ifelse(is.null(prefix),"",format(x,prefix)),floor(as.numeric(format(x,"%m"))/3-1e-3)+1,sep=combine)
@@ -106,15 +106,6 @@ to.shiny$DESC=factor(to.shiny$DESC,levels=as.character(cimdo.key$desc)[as.charac
 return(to.shiny)
 }
 
-if(read.files){
-  data.type="Patient"
-  case=data.frame(CASE=unlist(lapply(strsplit(list.dirs(paste0("FSM/",data.type))[-1],"/"),'[',3)))
-  to.shiny=ddply(case,.(CASE),.fun = function(x) read.cimdo(paste("FSM",data.type,x$CASE,sep="/")))
-  to.shiny=to.shiny[,names(to.shiny)[c(2:8,1)]]
-}else{
-  load("www/cimdoshiny.rdata")
-} 
-
 #### translate short variable names to long names
 leg.var=data.frame(short=c("OTHERSgivenONE","OnegivenALLothers"),
                    long=c("Prob(all other banks going default | bank i default)",
@@ -129,3 +120,8 @@ leg.tbl=data.frame(short=c("PoDTBSI","PoDTJointProb","atLeastOneInsurGivenAllBan
                           "Prob(at least one bank going default | all\r\n insurance companies default)",
                           "Prob(all insurance companies going default | all\r\n banks default)",
                           "Prob(all banks  going default | all\r\n insurance companies default)"))
+
+data.type="Patient"
+case=data.frame(CASE=unlist(lapply(strsplit(list.dirs(paste0("FSM/",data.type))[-1],"/"),'[',3)))
+to.shiny=ddply(case,.(CASE),.fun = function(x) read.cimdo(paste("FSM",data.type,x$CASE,sep="/")))
+to.shiny=to.shiny[,names(to.shiny)[c(2:8,1)]]
