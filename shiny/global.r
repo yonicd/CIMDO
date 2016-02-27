@@ -1,8 +1,15 @@
-pkg=c("plyr","zoo","ggplot2","reshape2","stringr","scales","grid","shinyAce","gridExtra","plotly","shiny","dplyr")
-x=sapply(pkg,require,character.only=T,warn.conflicts = F, quietly = T)
-rm(pkg,x)
-
-read.files=T
+library(plyr)
+library(zoo)
+library(ggplot2)
+library(reshape2)
+library(stringr)
+library(scales)
+library(grid)
+library(gridExtra)
+library(plotly)
+library(shiny)
+library(shinyAce)
+library(dplyr)
 
 remove_geom <- function(p, geom) {
   layers <- lapply(p$layers, function(x) if(any(grepl(paste0('(?i)',geom),class(x$geom)))) NULL else x)
@@ -26,10 +33,10 @@ cimdo.files=data.frame(file=list.files(file.path,pattern = "csv",full.names = T)
 
 cimdo.files=cimdo.files[which(sapply(cimdo.files$file,file.size)!=0),]
 
-file.id=which(cimdo.files$desc=="user definded groups")
+file.id=which(cimdo.files$measure=="user definded groups")
 
 cimdo.manual=read.csv(cimdo.files$file[file.id],header = T,skip = cimdo.files$startrow[file.id],row.names = NULL,stringsAsFactors = F)%>%
-  mutate(Date=as.Date(Date,format="%d/%m/%Y"),variable="Manual",file=cimdo.files$file[file.id],desc=as.character(cimdo.files$desc)[file.id])%>%
+  mutate(Date=as.Date(Date,format="%d/%m/%Y"),variable="Manual",file=cimdo.files$file[file.id],measure=as.character(cimdo.files$measure)[file.id])%>%
   rename(value=P.idxProb.going.default.idxGiven.default.)
 
 cimdo.manual.names=read.csv(cimdo.files$file[file.id],header = F,skip = 3,nrows = 2,row.names = NULL,stringsAsFactors = F)
@@ -37,33 +44,33 @@ cimdo.manual.names=read.csv(cimdo.files$file[file.id],header = F,skip = 3,nrows 
 cimdo.manual$variable=paste0(cimdo.manual.names,collapse = "|")
 
 
-cimdo.out=ddply(cimdo.files%>%filter(startrow%in%c(0,1,2,3,11)&!matrix),.(file,desc),.fun = function(df){
-  p1=read.csv(df$file,header = T,skip = df$startrow,row.names = NULL)
+cimdo.out=ddply(cimdo.files%>%filter(startrow%in%c(0,1,2,3,11)&!matrix),.(file,measure),.fun = function(df){
+  p1=read.csv(df$file,header = T,skip = df$startrow,row.names = NULL,stringsAsFactors = F)
   if(df$shift){
     nc=ncol(p1)
     names(p1)[-nc]=names(p1)[-1]
     p1=p1[,-nc]}
-  p1=p1%>%mutate(Date=as.Date(Date,format="%d/%m/%Y"))%>%melt(.,id="Date")%>%
+  #frmt=ifelse(cimdo.files$measure=="rawdata","%Y-%m-%d %T","%d/%m/%Y %T")
+  
+  if(!df$measure%in%c("Raw Data","row default|col default","row and col default","user defined groups")) p1$Date=paste(p1$Date,"00:00:00")
+  
+  p1=p1%>%mutate(Date=as.POSIXct(p1$Date,format="%d/%m/%Y %T"))%>%melt(.,id="Date")%>%
     mutate(variable=gsub("[.|P.]"," ",variable))
   return(p1)})
 
-cimdo.out=rbind(cimdo.out%>%mutate(desc=as.character(desc)),cimdo.manual)%>%
+cimdo.out=rbind(cimdo.out%>%mutate(measure=as.character(measure)),cimdo.manual)%>%
   mutate(variable=str_trim(gsub("rate_adj","",variable)))%>%
-  mutate_each(funs(factor),file,desc)
+  mutate_each(funs(factor),file,measure)
 
 cimdo.out=cimdo.out%>%
-  #left_join(sec.names,by="variable")%>%
   mutate(
-#     NAME_ENG=factor(NAME_ENG,levels=sec.names$NAME_ENG[idx]),
-#     NAME_ENG.C=factor(NAME_ENG,labels=paste(LETTERS[idx],levels(NAME_ENG),sep=" : ")),
-#     LETTER=factor(NAME_ENG,labels=LETTERS[idx]),
     Y=format(Date,"%Y"),
     m=format(Date,"%m"),
     Q=yq(Date,prefix = NULL)
   )
 
 
-DiDe=ddply(cimdo.files%>%filter(matrix),.(file,desc),.fun = function(df){
+DiDe=ddply(cimdo.files%>%filter(matrix),.(file,measure),.fun = function(df){
 jointmat=read.csv(df$file,header = T,skip = df$startrow,row.names = NULL)
 nc=ncol(jointmat)
 names(jointmat)[-nc]=names(jointmat)[-c(1)]
@@ -89,11 +96,11 @@ DiDe=DiDe%>%mutate(
 
 rm(cimdo.manual,cimdo.manual.names)
 
-cimdo.shiny=cimdo.out[,c("Date","Y","Q","m","variable","desc","value")]
+cimdo.shiny=cimdo.out[,c("Date","Y","Q","m","variable","measure","value")]
 names(cimdo.shiny)=toupper(names(cimdo.shiny))
 
 
-DiDe.shiny=DiDe[,c("Date","Y","Q","m","desc","in.default","to.default","value")]
+DiDe.shiny=DiDe[,c("Date","Y","Q","m","measure","in.default","to.default","value")]
 names(DiDe.shiny)=toupper(names(DiDe.shiny))
 DiDe.shiny=DiDe.shiny%>%mutate(VARIABLE=paste(TO.DEFAULT,IN.DEFAULT,sep="|"))%>%select(-c(TO.DEFAULT,IN.DEFAULT))
 DiDe.shiny=DiDe.shiny%>%mutate_each(funs(as.numeric),Y,M,VALUE)%>%mutate_each(funs(factor),-c(Y,M,DATE,VALUE))
@@ -102,7 +109,7 @@ to.shiny=rbind(cimdo.shiny,DiDe.shiny)
 
 to.shiny=to.shiny%>%mutate_each(funs(as.numeric),Y,M)%>%mutate_each(funs(factor),-c(Y,M,DATE,VALUE))
 
-to.shiny$DESC=factor(to.shiny$DESC,levels=as.character(cimdo.key$desc)[as.character(cimdo.key$desc)%in%levels(to.shiny$DESC)])
+to.shiny$MEASURE=factor(to.shiny$MEASURE,levels=as.character(cimdo.key$measure)[as.character(cimdo.key$measure)%in%levels(to.shiny$MEASURE)])
 return(to.shiny)
 }
 
@@ -120,8 +127,3 @@ leg.tbl=data.frame(short=c("PoDTBSI","PoDTJointProb","atLeastOneInsurGivenAllBan
                           "Prob(at least one bank going default | all\r\n insurance companies default)",
                           "Prob(all insurance companies going default | all\r\n banks default)",
                           "Prob(all banks  going default | all\r\n insurance companies default)"))
-
-# data.type="Patient"
-# case=data.frame(CASE=unlist(lapply(strsplit(list.dirs(paste0("FSM/",data.type))[-1],"/"),'[',3)))
-# to.shiny=ddply(case,.(CASE),.fun = function(x) read.cimdo(paste("FSM",data.type,x$CASE,sep="/")))
-# to.shiny=to.shiny[,names(to.shiny)[c(2:8,1)]]

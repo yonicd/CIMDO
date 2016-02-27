@@ -6,6 +6,13 @@ shinyServer(function(input, output, session) {
     case=data.frame(CASE=unlist(lapply(strsplit(list.dirs(paste0("FSM/",data.type))[-1],"/"),'[',3)))
     to.shiny=ddply(case,.(CASE),.fun = function(x) read.cimdo(paste("FSM",data.type,x$CASE,sep="/")))
     to.shiny=to.shiny[,names(to.shiny)[c(2:8,1)]]
+    if(data.type=="Patient"){
+    nm=names(to.shiny)
+    to.shiny=to.shiny%>%group_by(CASE,MEASURE,VARIABLE)%>%do(.,cbind(id=1:nrow(.),.))%>%ungroup
+    d1=to.shiny%>%filter(MEASURE=="Raw Data")
+    to.shiny=to.shiny%>%select(-c(DATE:M))%>%left_join(d1%>%select(c(id:M,CASE))%>%distinct,by=c("id","CASE"))
+    to.shiny=to.shiny[,nm]
+    rm(d1,nm)}
     return(to.shiny)
   })
 
@@ -34,14 +41,20 @@ output$CASE<-renderUI({
   selectInput(inputId = "CASE", label = "Data",choices = levels(df$CASE),selected=levels(df$CASE)[1],multiple = T)
 })
 
-output$DESC<-renderUI({
+output$ptype<-renderUI({
+ptypes=c("line","point","stacked","density","smoothed","boxplot")
+if(input$ext=="Basic") ptypes=c("line","point","stacked","density","smoothed")
+radioButtons("ptype", "Plot Type",choices = ptypes,selected = "line",inline=T)
+})
+
+output$MEASURE<-renderUI({
   df=to.shiny()
-  selectInput(inputId = "DESC", label = "Measure",choices = levels(df$DESC),selected=levels(df$DESC)[1],multiple = T)
+  selectInput(inputId = "MEASURE", label = "Measure",choices = levels(df$MEASURE),selected=levels(df$MEASURE)[1],multiple = T)
 })
   
 output$VARIABLE<-renderUI({
   df=to.shiny()
-  VARIABLE=levels(factor(df$VARIABLE[df$DESC%in%input$DESC]))
+  VARIABLE=levels(factor(df$VARIABLE[df$MEASURE%in%input$MEASURE]))
   if(any(grepl("IN",VARIABLE))) VARIABLE=gsub("TO.DEFAULT:|IN.DEFAULT:","",unique(as.character(df$VARIABLE)))
   selectInput(inputId = "VARIABLE",label =  "Measure Filter",choices = VARIABLE,multiple = T)
 })
@@ -58,7 +71,7 @@ output$yvar<-renderUI({
 
 output$fill<-renderUI({
   df=to.shiny()
-  selectInput('var_fill', 'Group', c('None', names(df)[-1],"TO.DEFAULT","IN.DEFAULT"),selected = "CASE")
+  selectInput('var_fill', 'Group', c('None', names(df)[-1],"TO.DEFAULT","IN.DEFAULT"),selected = "VARIABLE")
 })
 
 
@@ -71,13 +84,13 @@ output$fill<-renderUI({
       if(length(input$Q)>0) x=x%>%filter(Q%in%input$Q)
       if(length(input$M)>0) x=x%>%filter(M%in%seq(input$M[1],input$M[2]))
       if(length(input$VARIABLE)>0) x=x%>%filter(VARIABLE%in%input$VARIABLE)
-      if(length(input$DESC)>0) x=x%>%filter(DESC%in%input$DESC)
+      if(length(input$MEASURE)>0) x=x%>%filter(MEASURE%in%input$MEASURE)
 
       maxx=max(x$VALUE)
       temp1=ifelse(input$var_x==as.character(leg.var[1,1]),as.character(leg.var[1,2]),ifelse(input$var_x==as.character(leg.var[2,1]),as.character(leg.var[2,2]),input$var_x))
       temp2=ifelse(input$var_y==as.character(leg.var[1,1]),as.character(leg.var[1,2]),ifelse(input$var_y==as.character(leg.var[2,1]),as.character(leg.var[2,2]),input$var_y))
       
-      if(any(input$DESC%in%c("row and col default","row default|col default"))){
+      if(any(input$MEASURE%in%c("row and col default","row default|col default"))){
         x$TO.DEFAULT=unlist(lapply(strsplit(as.character(x$VARIABLE),"[|]"),'[',1))
         x$IN.DEFAULT=unlist(lapply(strsplit(as.character(x$VARIABLE),"[|]"),'[',2))
       }
@@ -120,7 +133,8 @@ output$fill<-renderUI({
     return(p)     
   })
 
-  output$table=renderDataTable(to.shiny)   
+  output$table=renderDataTable({df=to.shiny()
+  return(df)})   
   
   output$CimdoPlot=renderPlot(expr = {
     p=data.r()
@@ -137,7 +151,7 @@ output$fill<-renderUI({
                                           ggsave(file,plot=eval(parse(text=input$code)),device = device)
                                         })
   
-  output$CimdoPlotly=renderPlotly(expr = {
+  output$CimdoPlotly=plotly:::renderPlotly(expr = {
       p=data.r()
       input$send
       isolate({

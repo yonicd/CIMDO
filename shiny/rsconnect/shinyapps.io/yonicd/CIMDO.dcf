@@ -1,0 +1,8 @@
+name: CIMDO
+account: yonicd
+server: shinyapps.io
+bundleId: 382092
+url: https://yonicd.shinyapps.io/CIMDO/
+when: 1456601663.70836
+asMultiple: FALSE
+asStatic: FALSE
