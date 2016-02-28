@@ -4,7 +4,7 @@ shinyServer(function(input, output, session) {
     data.type<-input$data.type
     if(is.null(data.type)) return(NULL)
     case=data.frame(CASE=unlist(lapply(strsplit(list.dirs(paste0("FSM/",data.type))[-1],"/"),'[',3)))
-    to.shiny=ddply(case,.(CASE),.fun = function(x) read.cimdo(paste("FSM",data.type,x$CASE,sep="/")))
+    to.shiny=ddply(case,.(CASE),.fun = function(x) read.cimdo(paste("FSM",data.type,x$CASE,sep="/"),data.type))
     to.shiny=to.shiny[,names(to.shiny)[c(2:8,1)]]
     if(data.type=="Patient"){
     nm=names(to.shiny)

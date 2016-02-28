@@ -19,7 +19,7 @@ remove_geom <- function(p, geom) {
   p
 }
 
-read.cimdo=function(file.path){
+read.cimdo=function(file.path,data.type){
   
   load("cimdokey.rdata")
   
@@ -46,16 +46,20 @@ cimdo.manual$variable=paste0(cimdo.manual.names,collapse = "|")
 
 cimdo.out=ddply(cimdo.files%>%filter(startrow%in%c(0,1,2,3,11)&!matrix),.(file,measure),.fun = function(df){
   p1=read.csv(df$file,header = T,skip = df$startrow,row.names = NULL,stringsAsFactors = F)
+
   if(df$shift){
     nc=ncol(p1)
     names(p1)[-nc]=names(p1)[-1]
-    p1=p1[,-nc]}
-  #frmt=ifelse(cimdo.files$measure=="rawdata","%Y-%m-%d %T","%d/%m/%Y %T")
+    p1=p1[,-nc]
+  }
   
+  if(data.type=="Patient"){
   if(!df$measure%in%c("Raw Data","row default|col default","row and col default","user defined groups")) p1$Date=paste(p1$Date,"00:00:00")
-  
-  p1=p1%>%mutate(Date=as.POSIXct(p1$Date,format="%d/%m/%Y %T"))%>%melt(.,id="Date")%>%
-    mutate(variable=gsub("[.|P.]"," ",variable))
+  p1=p1%>%mutate(Date=as.POSIXct(Date,format="%d/%m/%Y %T"))
+  }else{
+    p1=p1%>%mutate(Date=as.Date(Date,format="%d/%m/%Y"))  
+  }
+  p1=p1%>%melt(.,id="Date")%>%mutate(variable=gsub("[.|P.]"," ",variable))
   return(p1)})
 
 cimdo.out=rbind(cimdo.out%>%mutate(measure=as.character(measure)),cimdo.manual)%>%
