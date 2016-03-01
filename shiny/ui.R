@@ -8,7 +8,7 @@ shinyUI(pageWithSidebar(
   # Sidebar with controls to select the variable to plot against mpg
   # and to specify whether outliers should be included
   sidebarPanel(width=3,
-               selectInput(inputId = "data.type", label = "Data Directory",choices = c("Patient","Finance"),selected='Patient'),
+               selectInput(inputId = "data.type", label = "Data Directory",choices = c("Patient","Finance"),selected='Finance'),
                radioButtons(inputId = "ext", label = "Dashboard Type",choices = c("Basic","Advanced"),selected='Basic',inline=T),
                hr(),
                conditionalPanel('input.plotmode=="ggplot"',uiOutput("Y"),

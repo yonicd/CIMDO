@@ -12,7 +12,10 @@ shinyServer(function(input, output, session) {
     d1=to.shiny%>%filter(MEASURE=="Raw Data")
     to.shiny=to.shiny%>%select(-c(DATE:M))%>%left_join(d1%>%select(c(id:M,CASE))%>%distinct,by=c("id","CASE"))
     to.shiny=to.shiny[,nm]
-    rm(d1,nm)}
+    rm(d1,nm)
+    }else{
+      to.shiny$DATE=as.Date(to.shiny$DATE)
+    }
     return(to.shiny)
   })
 
