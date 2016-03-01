@@ -34,7 +34,7 @@ shinyUI(pageWithSidebar(
     tabsetPanel(
       tabPanel("Dashboard",
                fluidRow(
-                 column(width=4,radioButtons(inputId="plotmode",label = "Plot Mode",choices=split(c("ggplot","plotly"),c("Static","Interactive")),selected = "plotly",inline = T)),
+                 column(width=4,radioButtons(inputId="plotmode",label = "Plot Mode",choices=split(c("ggplot","plotly"),c("Static","Interactive")),selected = "ggplot",inline = T)),
                  column(width=8,uiOutput("ptype"))),
                fluidRow(
                  column(width=3,uiOutput("CASE")),
