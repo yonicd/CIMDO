@@ -51,7 +51,7 @@ shinyUI(pageWithSidebar(
                  conditionalPanel('input.plotmode=="ggplot"',
                                   column(width=12,plotOutput(outputId = "CimdoPlot",height = "450px"))),
                  conditionalPanel('input.plotmode==="plotly"',
-                                  column(width=12,plotly:::plotlyOutput(outputId = "CimdoPlotly"))),
+                                  column(width=12,plotly:::plotlyOutput(outputId = "CimdoPlotly",width = "auto",height = "auto"))),
                  conditionalPanel("input.plotmode==='ggplot'",
                                   column(width=3,downloadButton('downloadPlot', 'Download Plot')))
                 )),
