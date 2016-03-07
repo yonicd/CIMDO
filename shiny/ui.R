@@ -13,8 +13,8 @@ shinyUI(fluidPage(
   ),
   
   div(class = "busy",  
-       p("Calculation in progress.."), 
-       img(src="http://downgraf.com/wp-content/uploads/2014/09/01-progress.gif", height="100",width="100")
+       img(src="http://downgraf.com/wp-content/uploads/2014/09/01-progress.gif", height="100",width="100"),
+      p("Calculation in progress..")
    ),
   
   # Application title

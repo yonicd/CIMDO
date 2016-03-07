@@ -1,8 +1,8 @@
 div.busy { 
   position:absolute;
-  top: 40%;
-  left: 50%;
-  margin-top: -100px;
+  top: 2%;
+  left: 83%;
+  margin-top: -50px;
   margin-left: -50px;
   display:none;
   background: rgb(255, 255, 255);
