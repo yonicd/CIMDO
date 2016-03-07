@@ -1,6 +1,21 @@
 to.shiny=uiOutput("to.shiny")
 
-shinyUI(pageWithSidebar(
+
+shinyUI(fluidPage(    
+
+#https://gist.github.com/withr/8799489
+  
+  tagList(
+    tags$head(
+      tags$link(rel="stylesheet", type="text/css",href="style.css"),
+      tags$script(type="text/javascript", src = "busy.js")
+    )
+  ),
+  
+  div(class = "busy",  
+       p("Calculation in progress.."), 
+       img(src="http://downgraf.com/wp-content/uploads/2014/09/01-progress.gif", height="100",width="100")
+   ),
   
   # Application title
   headerPanel("CIMDO Stability Measure Dashboard"),
