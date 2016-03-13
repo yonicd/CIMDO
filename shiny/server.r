@@ -155,6 +155,7 @@ output$fill<-renderUI({
                                         })
   
   output$CimdoPlotly=plotly:::renderPlotly(expr = {
+    pdf(NULL)
       p=data.r()
       input$send
       isolate({
