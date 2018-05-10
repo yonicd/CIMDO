@@ -12,6 +12,22 @@ This methodology was dervied by [Segoviano and Goodhart 2009](https://www.imf.or
 ## Application in major financial institutions
 The CIMDO framework and other market-based indicators are considered by many authorities an important, though not exclusive, tool to support the analysis of financial stability. The value added of this framework has been widely recognized by its use in various IMF global financial Stability Reviews (GFSRs), important Financial Sector assessment Programs (FSAPs), including the US in 2010, 2015, UK in 2011 and currently in 2016, Denmark, Egypt, etc., and has been adopted by various Central Banks including the Riksbank, ECB, Banque de France, Mexico CNBV, Reserve Bank of India etc.
 
+## Installation
+```r
+remotes::install_github('yonicd/CIMDO')
+```
+
+## Usage
+```r
+library(CIMDO)
+
+# read in CIMDO output directory into a `data.frame`
+  obj <- cimdo_read(PATH TO DATA)
+
+# invoke shiny dashboard
+  cimdo(obj)
+```
+
 ## Dashboard
 The dashboard reads all outputs by the Financial Stability Measures system and creates an interactive experience to study the model results. The graphs can be in static mode (ggplot) or interactive mode (plotly) which is still in beta. 
 
